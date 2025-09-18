@@ -5,7 +5,7 @@ class OrderCard extends StatelessWidget {
   final Order order;
   final VoidCallback onComplete;
   
-  const OrderCard({required this.order, required this.onComplete});
+  const OrderCard({super.key, required this.order, required this.onComplete});
   
   @override
   Widget build(BuildContext context) {
