@@ -1,4 +1,4 @@
-☕ Smart Ahwa Manager
+☕ *Smart Ahwa Manager*
 
 A simple Flutter app for managing a coffee shop (Ahwa).
 It uses Cubit (flutter_bloc) for state management, and demonstrates OOP and SOLID principles in practice.
