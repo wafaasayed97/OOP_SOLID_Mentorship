@@ -16,33 +16,63 @@ class AhwaManagerHomePage extends StatefulWidget {
 
 class _AhwaManagerHomePageState extends State<AhwaManagerHomePage> {
   int _selectedIndex = 0;
-  PageController _pageController = PageController();
+  late PageController _pageController;
 
   final List<Map<String, dynamic>> _pages = [
     {
       'icon': Icons.dashboard_outlined,
       'activeIcon': Icons.dashboard,
       'label': 'الطلبات',
-      'color': Colors.blue,
+      'color': Colors.brown[600],
     },
     {
       'icon': Icons.add_circle_outline,
       'activeIcon': Icons.add_circle,
       'label': 'طلب جديد',
-      'color': Colors.green,
+      'color': Colors.brown[700],
     },
     {
       'icon': Icons.analytics_outlined,
       'activeIcon': Icons.analytics,
       'label': 'التقارير',
-      'color': Colors.purple,
+      'color': Colors.brown[800],
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  bool _isNavigating = false;
+
+  void _onNavBarTap(int index) {
+    if (_isNavigating || _selectedIndex == index) return;
+    
+    _isNavigating = true;
+    setState(() => _selectedIndex = index);
+    
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    ).then((_) {
+      _isNavigating = false;
+    });
+  }
+
+  void _onPageChanged(int index) {
+    // Only update if we're not currently navigating via nav bar
+    if (!_isNavigating) {
+      setState(() => _selectedIndex = index);
+    }
   }
 
   @override
@@ -70,11 +100,12 @@ class _AhwaManagerHomePageState extends State<AhwaManagerHomePage> {
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                 margin: EdgeInsets.all(16.w),
+                duration: const Duration(seconds: 4),
                 action: SnackBarAction(
                   label: 'إغلاق',
                   textColor: Colors.white,
                   onPressed: () {
-                    context.read<AhwaManagerCubit>().resetToLoaded();
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   },
                 ),
               ),
@@ -83,9 +114,8 @@ class _AhwaManagerHomePageState extends State<AhwaManagerHomePage> {
         },
         child: PageView(
           controller: _pageController,
-          onPageChanged: (index) {
-            setState(() => _selectedIndex = index);
-          },
+          onPageChanged: _onPageChanged,
+          physics: const NeverScrollableScrollPhysics(), // Disable swipe to prevent conflicts
           children: const [
             DashboardScreen(),
             AddOrderScreen(),
@@ -102,8 +132,8 @@ class _AhwaManagerHomePageState extends State<AhwaManagerHomePage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 1,
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 0,
               blurRadius: 15,
               offset: const Offset(0, -5),
             ),
@@ -116,45 +146,42 @@ class _AhwaManagerHomePageState extends State<AhwaManagerHomePage> {
           ),
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
-            onTap: (index) {
-              setState(() => _selectedIndex = index);
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
+            onTap: _onNavBarTap,
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,
-            selectedItemColor: _pages[_selectedIndex]['color'],
+            selectedItemColor: Colors.brown[600],
             unselectedItemColor: Colors.grey[400],
             selectedLabelStyle: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 12.sp,
             ),
             unselectedLabelStyle: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w400,
             ),
             elevation: 0,
-            items: _pages.map((page) {
-              final index = _pages.indexOf(page);
+            items: List.generate(_pages.length, (index) {
+              final page = _pages[index];
               final isSelected = _selectedIndex == index;
               
               return BottomNavigationBarItem(
-                icon: Container(
+                icon: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
                   padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
                   decoration: BoxDecoration(
-                    color: isSelected ? page['color'].withOpacity(0.1) : Colors.transparent,
+                    color: isSelected 
+                        ? Colors.brown[600]!.withOpacity(0.1) 
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(20.r),
                   ),
                   child: Icon(
                     isSelected ? page['activeIcon'] : page['icon'],
-                    size: 24.sp,
+                    size: isSelected ? 26.sp : 24.sp,
                   ),
                 ),
                 label: page['label'],
               );
-            }).toList(),
+            }),
           ),
         ),
       ),
